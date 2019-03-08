@@ -37,7 +37,11 @@ fn list_files_in_dir(dir: &str) {
         let p = path.unwrap().path();
         let metadata = fs::metadata(&p).unwrap();
         let is_dir = metadata.is_dir();
-        println!("Name: {}, is_dir? {}", p.display(), is_dir);
+        if is_dir {
+            list_files_in_dir(&p.display().to_string());
+        } else {
+            println!("Name: {}, is_dir? {}", p.display(), is_dir);
+        }
     }
 }
 
