@@ -25,24 +25,38 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
-    list_files_in_dir("./");
+    let filenames = list_files_in_dir("/Users/chris-paterson/Documents/notes");
+    for f in filenames {
+        println!("{}", f);
+    }
 
     Ok(())
 }
 
-fn list_files_in_dir(dir: &str) {
+// TODO: Make this return an optional.
+fn list_files_in_dir(dir: &str) -> Vec<String> {
     let paths = fs::read_dir(dir).unwrap();
+
+    let mut filenames = Vec::new();
 
     for path in paths {
         let p = path.unwrap().path();
         let metadata = fs::metadata(&p).unwrap();
         let is_dir = metadata.is_dir();
+
+        // TODO: Check name to see if starts with . (is hidden). If so, skip.
+
         if is_dir {
-            list_files_in_dir(&p.display().to_string());
+            let nested_filenames = list_files_in_dir(&p.display().to_string());
+            for filename in nested_filenames {
+                filenames.push(filename);
+            }
         } else {
-            println!("Name: {}, is_dir? {}", p.display(), is_dir);
+            filenames.push(p.display().to_string());
         }
     }
+
+    filenames
 }
 
 #[cfg(test)]
