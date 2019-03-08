@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::fs;
 
 pub struct Config {
     pub arguments: Vec<String>,
@@ -22,7 +23,22 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         println!("{}", c);
     }
 
+    // Go to the dir and grab anything in that and lower
+    // we then want to concat the files into one and output it
+    list_files_in_dir("./");
+
     Ok(())
+}
+
+fn list_files_in_dir(dir: &str) {
+    let paths = fs::read_dir(dir).unwrap();
+
+    for path in paths {
+        let p = path.unwrap().path();
+        let metadata = fs::metadata(&p).unwrap();
+        let is_dir = metadata.is_dir();
+        println!("Name: {}, is_dir? {}", p.display(), is_dir);
+    }
 }
 
 #[cfg(test)]
