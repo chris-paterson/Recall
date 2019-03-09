@@ -1,8 +1,10 @@
+use std::env;
 use std::error::Error;
 use std::fs;
 
 pub struct Config {
     pub arguments: Vec<String>,
+    pub root_path: String,
 }
 
 impl Config {
@@ -11,8 +13,14 @@ impl Config {
             return Err("Not enough arguments.");
         }
 
+        let rp = env::var("RECALL_PATH");
+        if rp.is_err() {
+            return Err("Expected RECALL_PATH env variable but found none");
+        };
+
         Ok(Config {
             arguments: args[1..].to_vec(),
+            root_path: rp.unwrap(),
         })
     }
 }
@@ -25,7 +33,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
-    let filenames = list_files_in_dir("./src");
+    let filenames = list_files_in_dir(&config.root_path);
     for f in filenames {
         println!("{}", f);
     }
