@@ -2,6 +2,15 @@
 
 Recall is a command line app to help recall information.
 
+## Building
+`cargo build --release`
+
+This outputs the binary which can be found in targets/release/recall
+
+## Running
+`RECALL_PATH=./test/test_dir cargo run [args]`
+
+
 ## Usage
 - Commands - Able to dig deeper with more arugments
     - `recall tmux` - Outputs all things about tmux
