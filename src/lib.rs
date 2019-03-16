@@ -86,6 +86,7 @@ mod tests {
 
     #[test]
     fn config_removes_first_cl_parameter() {
+        env::set_var("RECALL_PATH", "./test/test_dir");
         let args: [String; 3] = [
             String::from("recall"),
             String::from("tmux"),
@@ -97,5 +98,18 @@ mod tests {
         assert!(!config.arguments.contains(&args[0]));
         assert!(config.arguments.contains(&args[1]));
         assert!(config.arguments.contains(&args[2]));
+    }
+
+    #[test]
+    fn lists_files_recursively() {
+        let dirs = list_files_in_dir("./test/test_dir");
+
+        // Laziest way to test the vec contains the files we want.
+        let dir_string = dirs.join(", ");
+
+        assert!(dir_string.contains("surround.md"));
+        assert!(dir_string.contains("grep.md"));
+        assert!(dir_string.contains("layouts.md"));
+        assert!(dir_string.contains("tmux.md"));
     }
 }
