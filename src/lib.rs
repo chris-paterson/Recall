@@ -1,6 +1,7 @@
 use std::env;
 use std::error::Error;
 use std::fs;
+use std::io::prelude::*;
 
 pub struct Config {
     pub arguments: Vec<String>,
@@ -34,9 +35,16 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
     let filenames = list_files_in_dir(&config.root_path);
+
+    let mut file_contents = Vec::new();
     for f in filenames {
-        println!("{}", f);
+        match get_contents_of_file(&f) {
+            Ok(contents) => file_contents.push(contents),
+            Err(error) => println!("ERROR: {}", error),
+        }
     }
+
+    println!("{}", file_contents.join("\n\n\n"));
 
     Ok(())
 }
@@ -68,6 +76,19 @@ fn list_files_in_dir(dir: &str) -> Vec<String> {
     }
 
     filenames
+}
+
+fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
+    let mut file = match fs::File::open(dir) {
+        Ok(f) => f,
+        Err(error) => return Err(error),
+    };
+
+    let mut contents = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => Ok(contents),
+        Err(error) => return Err(error),
+    }
 }
 
 #[cfg(test)]
