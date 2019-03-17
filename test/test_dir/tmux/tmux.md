@@ -1,3 +1,5 @@
+# Tmux
+
 ## Attach
 `tmux a -t <session name>`
 

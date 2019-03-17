@@ -27,14 +27,10 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    // Constructs string of file contents
-    for c in config.arguments {
-        println!("{}", c);
-    }
-
+    let sub_dir = create_sub_dir_path(&config);
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
-    let filenames = list_files_in_dir(&config.root_path);
+    let filenames = list_files_in_dir(&sub_dir);
 
     let mut file_contents = Vec::new();
     for f in filenames {
@@ -47,6 +43,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     println!("{}", file_contents.join("\n\n\n"));
 
     Ok(())
+}
+
+fn create_sub_dir_path(config: &Config) -> String {
+    let sub_dir = format!("{}/{}", config.root_path, &config.arguments.join("/"));
+    sub_dir
 }
 
 // TODO: Make this return an optional.
@@ -132,5 +133,19 @@ mod tests {
         assert!(dir_string.contains("grep.md"));
         assert!(dir_string.contains("layouts.md"));
         assert!(dir_string.contains("tmux.md"));
+    }
+
+    #[test]
+    fn path_only_uses_args() {
+        env::set_var("RECALL_PATH", "./test/test_dir");
+        let args: [String; 3] = [
+            String::from("recall"),
+            String::from("tmux"),
+            String::from("layouts"),
+        ];
+
+        let config = Config::new(&args).unwrap();
+        let sub_dir = create_sub_dir_path(&config);
+        assert!(sub_dir == "./test/test_dir/tmux/layouts");
     }
 }

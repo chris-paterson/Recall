@@ -1,4 +1,4 @@
-# surround.vim
+## surround.vim
 
 Surround.vim is all about "surroundings": parentheses, brackets, quotes,
 XML tags, and more.  The plugin provides mappings to easily delete,
