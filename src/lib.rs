@@ -54,24 +54,24 @@ fn list_files_in_dir(dir: &str) -> Vec<String> {
     let paths = fs::read_dir(dir).unwrap();
     let mut filenames = Vec::new();
 
-    for path in paths {
-        let p = path.unwrap().path();
+    for p in paths {
+        let path = p.unwrap().path();
 
         // Don't include hidden files.
-        let filename = p.file_name().unwrap();
+        let filename = path.file_name().unwrap();
         if filename.to_str().unwrap().starts_with(".") {
             continue;
         }
 
-        let is_dir = fs::metadata(&p).unwrap().is_dir();
+        let is_dir = fs::metadata(&path).unwrap().is_dir();
 
         if is_dir {
-            let nested_filenames = list_files_in_dir(&p.display().to_string());
+            let nested_filenames = list_files_in_dir(&path.display().to_string());
             for filename in nested_filenames {
                 filenames.push(filename);
             }
         } else {
-            filenames.push(p.display().to_string());
+            filenames.push(path.display().to_string());
         }
     }
 
