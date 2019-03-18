@@ -60,7 +60,7 @@ fn list_files_in_dir(dir: &str) -> Vec<String> {
 
         // Don't include hidden files.
         let filename = path.file_name().unwrap();
-        if filename.to_str().unwrap().starts_with(".") {
+        if filename.to_str().unwrap().starts_with('.') {
             continue;
         }
 
@@ -88,7 +88,7 @@ fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
     let mut contents = String::new();
     match file.read_to_string(&mut contents) {
         Ok(_) => Ok(contents),
-        Err(error) => return Err(error),
+        Err(error) => Err(error),
     }
 }
 
