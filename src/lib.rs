@@ -27,10 +27,10 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let sub_dir = create_sub_dir_path(&config);
+    let sub_dir = generate_sub_dir_path(&config);
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
-    let filenames = list_files_in_dir(&sub_dir);
+    let filenames = recursively_get_filepaths(&sub_dir);
 
     let mut file_contents = Vec::new();
     for f in filenames {
@@ -45,13 +45,13 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn create_sub_dir_path(config: &Config) -> String {
+fn generate_sub_dir_path(config: &Config) -> String {
     let sub_dir = format!("{}/{}", config.root_path, &config.arguments.join("/"));
     sub_dir
 }
 
 // TODO: Make this return an optional.
-fn list_files_in_dir(dir: &str) -> Vec<String> {
+fn recursively_get_filepaths(dir: &str) -> Vec<String> {
     let paths = fs::read_dir(dir).unwrap();
     let mut filenames = Vec::new();
 
@@ -67,7 +67,7 @@ fn list_files_in_dir(dir: &str) -> Vec<String> {
         let is_dir = fs::metadata(&path).unwrap().is_dir();
 
         if is_dir {
-            let nested_filenames = list_files_in_dir(&path.display().to_string());
+            let nested_filenames = recursively_get_filepaths(&path.display().to_string());
             for filename in nested_filenames {
                 filenames.push(filename);
             }
@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn lists_files_recursively() {
-        let dirs = list_files_in_dir("./test/test_dir");
+        let dirs = recursively_get_filepaths("./test/test_dir");
 
         // Laziest way to test the vec contains the files we want.
         let dir_string = dirs.join(", ");
@@ -145,7 +145,14 @@ mod tests {
         ];
 
         let config = Config::new(&args).unwrap();
-        let sub_dir = create_sub_dir_path(&config);
+        let sub_dir = generate_sub_dir_path(&config);
         assert!(sub_dir == "./test/test_dir/tmux/layouts");
     }
+
+    //#[test]
+    //fn non_valid_paths_handled_gracefully() {
+    //    let dirs = recursively_get_filepaths("./thispathdoesnotexist");
+
+    //    assert!(dirs.is_err(), true);
+    //}
 }
