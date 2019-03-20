@@ -28,7 +28,3 @@ This outputs the binary which can be found in targets/release/recall
     - Need a way to specify repo.
         - Maybe we just specify a directory (possibly an env variable)
         - The specified directory should have git enabled so we can just invoke commands
-- Probably one large markdown file? or maybe a number of small files.
-    - If small files make it directory based?
-    - Seems like a pain to change in the future?
-    - Maybe easier than one large file though
