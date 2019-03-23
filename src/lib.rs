@@ -30,7 +30,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let sub_dir = generate_sub_dir_path(&config);
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
-    let filenames = file_manager::recursively_get_filepaths(&sub_dir);
+    let filenames = match file_manager::recursively_get_filepaths(&sub_dir) {
+        Some(filenames) => filenames,
+        None => return Err("No files found in given dir.")?,
+    };
 
     let mut file_contents = Vec::new();
     for f in filenames {

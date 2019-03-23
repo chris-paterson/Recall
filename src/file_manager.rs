@@ -1,9 +1,12 @@
 use std::fs;
 use std::io::prelude::*;
 
-// TODO: Make this return an optional.
-pub fn recursively_get_filepaths(dir: &str) -> Vec<String> {
-    let paths = fs::read_dir(dir).unwrap();
+pub fn recursively_get_filepaths(dir: &str) -> Option<Vec<String>> {
+    let paths = match fs::read_dir(dir) {
+        Ok(path) => path,
+        Err(_) => return None,
+    };
+
     let mut filenames = Vec::new();
 
     for p in paths {
@@ -18,7 +21,11 @@ pub fn recursively_get_filepaths(dir: &str) -> Vec<String> {
         let is_dir = fs::metadata(&path).unwrap().is_dir();
 
         if is_dir {
-            let nested_filenames = recursively_get_filepaths(&path.display().to_string());
+            let nested_filenames = match recursively_get_filepaths(&path.display().to_string()) {
+                Some(filenames) => filenames,
+                None => continue, // Just skip over this one.
+            };
+
             for filename in nested_filenames {
                 filenames.push(filename);
             }
@@ -27,7 +34,7 @@ pub fn recursively_get_filepaths(dir: &str) -> Vec<String> {
         }
     }
 
-    filenames
+    Some(filenames)
 }
 
 pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
@@ -45,7 +52,7 @@ pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
 
 #[test]
 fn lists_files_recursively() {
-    let dirs = recursively_get_filepaths("./test/test_dir");
+    let dirs = recursively_get_filepaths("./test/test_dir").unwrap();
 
     // Laziest way to test the vec contains the files we want.
     let dir_string = dirs.join(", ");
@@ -56,9 +63,9 @@ fn lists_files_recursively() {
     assert!(dir_string.contains("tmux.md"));
 }
 
-//#[test]
-//fn non_valid_paths_handled_gracefully() {
-//    let dirs = recursively_get_filepaths("./thispathdoesnotexist");
+#[test]
+fn non_valid_paths_return_none() {
+    let dirs = recursively_get_filepaths("./thispathdoesnotexist");
 
-//    assert!(dirs.is_err(), true);
-//}
+    assert!(dirs.is_none(), true);
+}
