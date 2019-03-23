@@ -11,12 +11,51 @@ This outputs the binary which can be found in targets/release/recall
 `RECALL_PATH=./test/test_dir cargo run [args]`
 
 
-## Usage
+## Current Usage
 - Commands - Able to dig deeper with more arugments
     - `recall tmux` - Outputs all things about tmux
     - `recall tmux layouts` - Would just contain things about tmux layouts
     - `recall vim surround`
     - `recall grep`
+
+## Future Usage
+
+### Creating (new)
+Syntax: `recall -n swift class`
+
+If `swift` or `class` not exit, the program should create the directories, files, and insert the headings of the files. 
+
+### Editing
+Syntax: `recall -e swift class`
+
+This will open the `class` file for editing (likely using vim for now)
+
+If the directory doesn't exit, `create` will be run first and then edit
+
+
+### Deleting
+Syntax: `recall -d tmux layouts main`
+
+- This deletes all children of that directory too
+- Confirmation required
+    - Maybe output what else will be deleted
+
+
+### Merge
+Syntax: `recall -m tmux layouts main -t tmux layouts`
+
+- `-m` merge
+- `-t` target
+
+Puts the contents and children into the target
+
+### Backup (Maybe, if not automatic)
+Syntax: `recall -b`
+
+The files are backed by git
+
+Even if we backup automatically we may want to include this to manually sync in case of no network at time of run
+
 
 ## Ideas
 - At the moment there isn't a plan to be able to add new notes so the following command will just open the file in vim.
@@ -28,3 +67,15 @@ This outputs the binary which can be found in targets/release/recall
     - Need a way to specify repo.
         - Maybe we just specify a directory (possibly an env variable)
         - The specified directory should have git enabled so we can just invoke commands
+- Probably one large markdown file? or maybe a number of small files.
+    - If small files make it directory based?
+    - Seems like a pain to change in the future?
+    - Maybe easier than one large file though
+
+
+## Future
+- Web client - Phoenix
+    - This can be used for mobile too
+    - Eventually would want to be able to edit things too
+    - User notes by a git repo that they specify
+        - Don't really want to store any keys so we'll see what's available
