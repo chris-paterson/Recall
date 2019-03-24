@@ -3,9 +3,18 @@ use std::error::Error;
 
 mod file_manager;
 
+pub enum Task {
+    New,
+    Read,
+    Edit,
+    Delete,
+    Help,
+}
+
 pub struct Config {
-    pub arguments: Vec<String>,
     pub root_path: String,
+    pub arguments: Vec<String>,
+    pub task: Task,
 }
 
 impl Config {
@@ -14,23 +23,47 @@ impl Config {
             return Err("Not enough arguments.");
         }
 
+        let task_args = args[1..].to_vec(); // Skip program name.
+        let task = match &*task_args[0] {
+            "-n" => Task::New,
+            "-e" => Task::Edit,
+            "-d" => Task::Delete,
+            "-h" => Task::Help,
+            _ => Task::Read,
+        };
+
+        // Ensure we have enough args for the task.
+        let min_args = match task {
+            Task::Help => 0,
+            Task::Read => 1,
+            _ => 2,
+        };
+
+        if task_args.len() < min_args {
+            return Err("Not enough arguments.");
+        }
+
+        let path_args = args[min_args..].to_vec();
+
         let rp = env::var("RECALL_PATH");
         if rp.is_err() {
             return Err("Expected RECALL_PATH env variable but found none");
         };
 
+        let root_path = format!("{}/{}", rp.unwrap(), path_args.join("/"));
+
         Ok(Config {
-            arguments: args[1..].to_vec(),
-            root_path: rp.unwrap(),
+            root_path,
+            arguments: path_args,
+            task,
         })
     }
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let sub_dir = generate_sub_dir_path(&config);
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
-    let filenames = match file_manager::recursively_get_filepaths(&sub_dir) {
+    let filenames = match file_manager::recursively_get_filepaths(&config.root_path) {
         Some(filenames) => filenames,
         None => return Err("No files found in given dir.")?,
     };
@@ -48,13 +81,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn generate_sub_dir_path(config: &Config) -> String {
-    let sub_dir = format!("{}/{}", config.root_path, &config.arguments.join("/"));
-    sub_dir
-}
-
 #[test]
-fn not_enough_args() {
+fn not_enough_program_args() {
     let args: [String; 1] = [String::from("recall")];
 
     match Config::new(&args) {
@@ -64,10 +92,21 @@ fn not_enough_args() {
 }
 
 #[test]
-fn config_removes_first_cl_parameter() {
+fn not_enough_task_args() {
+    let create_args: [String; 2] = [String::from("recall"), String::from("-n")];
+
+    match Config::new(&create_args) {
+        Ok(_) => assert!(false, "-n flag should require at least two arguments."),
+        Err(_) => assert!(true),
+    }
+}
+
+#[test]
+fn config_arguments_not_include_flag() {
     env::set_var("RECALL_PATH", "./test/test_dir");
-    let args: [String; 3] = [
+    let args: [String; 4] = [
         String::from("recall"),
+        String::from("-n"),
         String::from("tmux"),
         String::from("layouts"),
     ];
@@ -75,8 +114,8 @@ fn config_removes_first_cl_parameter() {
     let config = Config::new(&args).unwrap();
     assert!(config.arguments.len() == 2);
     assert!(!config.arguments.contains(&args[0]));
-    assert!(config.arguments.contains(&args[1]));
     assert!(config.arguments.contains(&args[2]));
+    assert!(config.arguments.contains(&args[3]));
 }
 
 #[test]
@@ -89,6 +128,5 @@ fn path_only_uses_args() {
     ];
 
     let config = Config::new(&args).unwrap();
-    let sub_dir = generate_sub_dir_path(&config);
-    assert!(sub_dir == "./test/test_dir/tmux/layouts");
+    assert!(&config.root_path == "./test/test_dir/tmux/layouts");
 }
