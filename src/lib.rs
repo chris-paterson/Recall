@@ -61,6 +61,22 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let task_result = match config.task {
+        Task::New => unimplemented!(),
+        Task::Read => execute_read(&config),
+        Task::Edit => unimplemented!(),
+        Task::Delete => unimplemented!(),
+        Task::Help => unimplemented!(),
+    };
+
+    if task_result.is_err() {
+        return task_result;
+    };
+
+    Ok(())
+}
+
+fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
     // Go to the dir and grab anything in that and lower
     // we then want to concat the files into one and output it
     let filenames = match file_manager::recursively_get_filepaths(&config.root_path) {
@@ -77,7 +93,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
 
     println!("{}", file_contents.join("\n\n\n"));
-
     Ok(())
 }
 
@@ -114,6 +129,7 @@ fn config_arguments_not_include_flag() {
     let config = Config::new(&args).unwrap();
     assert!(config.arguments.len() == 2);
     assert!(!config.arguments.contains(&args[0]));
+    assert!(!config.arguments.contains(&args[1]));
     assert!(config.arguments.contains(&args[2]));
     assert!(config.arguments.contains(&args[3]));
 }
