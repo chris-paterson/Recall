@@ -92,15 +92,7 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // TODO: Currently just unix.
-    // TODO: Robustness.
-    if std::process::Command::new("clear")
-        .status()
-        .unwrap()
-        .success()
-    {
-        println!("{}", file_contents.join("\n\n\n"));
-    }
+    println!("{}", file_contents.join("\n\n\n"));
     Ok(())
 }
 
