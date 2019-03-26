@@ -1,5 +1,6 @@
 use std::fs;
 use std::io::prelude::*;
+use std::path::Path;
 
 pub fn recursively_get_filepaths(dir: &str) -> Option<Vec<String>> {
     let paths = match fs::read_dir(dir) {
@@ -48,6 +49,28 @@ pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
         Ok(_) => Ok(contents),
         Err(error) => Err(error),
     }
+}
+
+pub fn create_file(recall_path: &str, path_parts: &Vec<String>) -> std::io::Result<()> {
+    // We want to include a stub file in each path we create.
+    for (index, path_part) in path_parts.iter().enumerate() {
+        let merged_path_part = match index {
+            0 => path_part.to_string(),
+            _ => path_parts[0..index].join("/"),
+        };
+
+        let full_path = format!("{}/{}", recall_path, merged_path_part);
+        let filepath = format!("{}/{}.md", full_path, path_part);
+
+        if !Path::new(&filepath).exists() {
+            println!("full_path: {}", full_path);
+            println!("filepath: {}", filepath);
+            fs::create_dir(full_path)?;
+            fs::File::create(filepath)?;
+        }
+    }
+
+    Ok(())
 }
 
 #[test]

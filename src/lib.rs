@@ -12,6 +12,7 @@ pub enum Task {
 }
 
 pub struct Config {
+    pub recall_path: String, // TODO: Rething recall/root path.
     pub root_path: String,
     pub arguments: Vec<String>,
     pub task: Task,
@@ -50,9 +51,11 @@ impl Config {
             return Err("Expected RECALL_PATH env variable but found none");
         };
 
-        let root_path = format!("{}/{}", rp.unwrap(), path_args.join("/"));
+        let recall_path = rp.unwrap();
+        let root_path = format!("{}/{}", recall_path, path_args.join("/"));
 
         Ok(Config {
+            recall_path,
             root_path,
             arguments: path_args,
             task,
@@ -62,8 +65,8 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let task_result = match config.task {
-        Task::New => unimplemented!(),
         Task::Read => execute_read(&config),
+        Task::New => execute_create(&config),
         Task::Edit => unimplemented!(),
         Task::Delete => unimplemented!(),
         Task::Help => unimplemented!(),
@@ -94,8 +97,15 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
         }
     }
 
-    println!("{}", file_contents.join("\n\n\n"));
+    println!("{}", file_contents.join("\n\n"));
     Ok(())
+}
+
+fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
+    match file_manager::create_file(&config.recall_path, &config.arguments) {
+        Ok(_) => return Ok(()),
+        Err(error) => return Err(format!("Error creating file: {}", error))?,
+    }
 }
 
 #[test]
