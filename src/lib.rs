@@ -35,7 +35,7 @@ impl Config {
         // Ensure we have enough args for the task.
         let min_args = match task {
             Task::Help => 0,
-            Task::Read => 1,
+            Task::Read => 1, // TODO: Maybe read with 0 args lists everything?
             _ => 2,
         };
 
@@ -77,13 +77,15 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
-    // Go to the dir and grab anything in that and lower
-    // we then want to concat the files into one and output it
-    let filenames = match file_manager::recursively_get_filepaths(&config.root_path) {
+    // Go to the dir and grab anything in that and lower.
+    // The returned list has the deepest files at the start of the list.
+    let mut filenames = match file_manager::recursively_get_filepaths(&config.root_path) {
         Some(filenames) => filenames,
         None => return Err("No files found in given dir.")?,
     };
 
+    // We want to view the root file start so we need to reverse the list.
+    filenames.reverse();
     let mut file_contents = Vec::new();
     for f in filenames {
         match file_manager::get_contents_of_file(&f) {
