@@ -54,17 +54,13 @@ pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
 pub fn create_file(recall_path: &str, path_parts: &Vec<String>) -> std::io::Result<()> {
     // We want to include a stub file in each path we create.
     for (index, path_part) in path_parts.iter().enumerate() {
-        let merged_path_part = match index {
-            0 => path_part.to_string(),
-            _ => path_parts[0..index].join("/"),
-        };
+        let merged_path_part = path_parts[0..index+1].join("/");
 
         let full_path = format!("{}/{}", recall_path, merged_path_part);
         let filepath = format!("{}/{}.md", full_path, path_part);
 
+        println!("asdf{}", merged_path_part);
         if !Path::new(&filepath).exists() {
-            println!("full_path: {}", full_path);
-            println!("filepath: {}", filepath);
             fs::create_dir(full_path)?;
             fs::File::create(filepath)?;
         }
@@ -97,4 +93,24 @@ fn non_valid_paths_return_none() {
     let dirs = recursively_get_filepaths("./thispathdoesnotexist");
 
     assert!(dirs.is_none(), true);
+}
+
+#[test]
+fn create_successfully_creates_files_for_each_level() {
+    let args: [String; 2] = [
+        String::from("swift"),
+        String::from("keypath"),
+    ];
+    let arg_vec = args.to_vec();
+    let _create_file = create_file("./test/test_dir", &arg_vec);
+
+    assert!(Path::new("./test/test_dir/swift/swift.md").exists());
+    assert!(Path::new("./test/test_dir/swift/keypath/keypath.md").exists());
+
+    // Cleanup.
+    if Path::new("./test/test_dir/swift").exists() {
+        let _cleanup = fs::remove_dir_all("./test/test_dir/swift");
+    }
+
+    assert!(!Path::new("./test/test_dir/swift").exists());
 }
