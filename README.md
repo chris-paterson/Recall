@@ -79,3 +79,9 @@ Even if we backup automatically we may want to include this to manually sync in 
     - Eventually would want to be able to edit things too
     - User notes by a git repo that they specify
         - Don't really want to store any keys so we'll see what's available
+
+
+
+## Terminology
+- dir - Folder
+- Path - Filesystem object such as file

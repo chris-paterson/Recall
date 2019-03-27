@@ -12,9 +12,8 @@ pub enum Task {
 }
 
 pub struct Config {
-    pub recall_path: String, // TODO: Rething recall/root path.
-    pub root_path: String,
-    pub arguments: Vec<String>,
+    pub recall_root_dir: String,
+    pub path_parts: Vec<String>,
     pub task: Task,
 }
 
@@ -44,20 +43,18 @@ impl Config {
             return Err("Not enough arguments.");
         }
 
-        let path_args = args[min_args..].to_vec();
+        let path_parts = args[min_args..].to_vec();
 
-        let rp = env::var("RECALL_PATH");
-        if rp.is_err() {
-            return Err("Expected RECALL_PATH env variable but found none");
+        let rd = env::var("RECALL_DIR");
+        if rd.is_err() {
+            return Err("Expected RECALL_DIRenv variable but found none");
         };
 
-        let recall_path = rp.unwrap();
-        let root_path = format!("{}/{}", recall_path, path_args.join("/"));
+        let recall_root_dir = rd.unwrap();
 
         Ok(Config {
-            recall_path,
-            root_path,
-            arguments: path_args,
+            recall_root_dir,
+            path_parts,
             task,
         })
     }
@@ -79,10 +76,16 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn generate_sub_root_dir(config: &Config) -> String {
+    let sub_root_dir = format!("{}/{}", config.recall_root_dir, config.path_parts.join("/"));
+    sub_root_dir
+}
+
 fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
+    let sub_root_dir = generate_sub_root_dir(&config);
     // Go to the dir and grab anything in that and lower.
     // The returned list has the deepest files at the start of the list.
-    let mut filenames = match file_manager::recursively_get_filepaths(&config.root_path) {
+    let mut filenames = match file_manager::recursively_get_filepaths(&sub_root_dir) {
         Some(filenames) => filenames,
         None => return Err("No files found in given dir.")?,
     };
@@ -102,7 +105,7 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
-    match file_manager::create_file(&config.recall_path, &config.arguments) {
+    match file_manager::create_file(&config.recall_root_dir, &config.path_parts) {
         Ok(_) => return Ok(()),
         Err(error) => return Err(format!("Error creating file: {}", error))?,
     }
@@ -129,8 +132,8 @@ fn not_enough_task_args() {
 }
 
 #[test]
-fn config_arguments_not_include_flag() {
-    env::set_var("RECALL_PATH", "./test/test_dir");
+fn config_path_parts_not_include_flag() {
+    env::set_var("RECALL_DIR", "./test/test_dir");
     let args: [String; 4] = [
         String::from("recall"),
         String::from("-n"),
@@ -139,16 +142,16 @@ fn config_arguments_not_include_flag() {
     ];
 
     let config = Config::new(&args).unwrap();
-    assert!(config.arguments.len() == 2);
-    assert!(!config.arguments.contains(&args[0]));
-    assert!(!config.arguments.contains(&args[1]));
-    assert!(config.arguments.contains(&args[2]));
-    assert!(config.arguments.contains(&args[3]));
+    assert!(config.path_parts.len() == 2);
+    assert!(!config.path_parts.contains(&args[0]));
+    assert!(!config.path_parts.contains(&args[1]));
+    assert!(config.path_parts.contains(&args[2]));
+    assert!(config.path_parts.contains(&args[3]));
 }
 
 #[test]
 fn path_only_uses_args() {
-    env::set_var("RECALL_PATH", "./test/test_dir");
+    env::set_var("RECALL_DIR", "./test/test_dir");
     let args: [String; 3] = [
         String::from("recall"),
         String::from("tmux"),
@@ -156,5 +159,6 @@ fn path_only_uses_args() {
     ];
 
     let config = Config::new(&args).unwrap();
-    assert!(&config.root_path == "./test/test_dir/tmux/layouts");
+    let sub_root_dir = generate_sub_root_dir(&config);
+    assert!(sub_root_dir == "./test/test_dir/tmux/layouts");
 }
