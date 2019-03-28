@@ -54,6 +54,8 @@ pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
 pub fn create_file(recall_path: &str, path_parts: &Vec<String>) -> std::io::Result<()> {
     // We want to include a stub file in each path we create.
     for (index, path_part) in path_parts.iter().enumerate() {
+        // TODO: Maybe we don't want to keep recreating this from scratch. It may be better to
+        // append the new depth to a mut string.
         let merged_path_part = path_parts[0..index+1].join("/");
 
         let full_path = format!("{}/{}", recall_path, merged_path_part);
