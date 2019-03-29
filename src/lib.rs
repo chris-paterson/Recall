@@ -85,13 +85,13 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
     let sub_root_dir = generate_sub_root_dir(&config);
     // Go to the dir and grab anything in that and lower.
     // The returned list has the deepest files at the start of the list.
-    let mut filenames = match file_manager::recursively_get_filepaths(&sub_root_dir) {
+    let filenames = match file_manager::recursively_get_filepaths(&sub_root_dir) {
         Some(filenames) => filenames,
         None => return Err("No files found in given dir.")?,
     };
 
     // We want to view the root file start so we need to reverse the list.
-    filenames.reverse();
+    // filenames.reverse(); // TODO: Maybe this doesn't need to happen?
     let mut file_contents = Vec::new();
     for f in filenames {
         match file_manager::get_contents_of_file(&f) {

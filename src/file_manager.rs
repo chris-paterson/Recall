@@ -61,11 +61,27 @@ pub fn create_file(recall_path: &str, path_parts: &[String]) -> std::io::Result<
 
         if !Path::new(&filepath).exists() {
             fs::create_dir(full_path)?;
-            fs::File::create(filepath)?;
+            let mut file = fs::File::create(&filepath)?;
+
+            // Give file a heading.
+            let file_heading = format!(
+                "{} {}",
+                "#".repeat(index + 1),
+                capitalize_first_letter(path_part)
+            );
+            file.write_all(file_heading.as_bytes())?;
         }
     }
 
     Ok(())
+}
+
+fn capitalize_first_letter(string: &str) -> String {
+    let mut characters = string.chars();
+    match characters.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + characters.as_str(),
+    }
 }
 
 #[test]
