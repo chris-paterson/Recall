@@ -106,8 +106,8 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
 
 fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
     match file_manager::create_file(&config.recall_root_dir, &config.path_parts) {
-        Ok(_) => return Ok(()),
-        Err(error) => return Err(format!("Error creating file: {}", error))?,
+        Ok(_) => Ok(()),
+        Err(error) => Err(format!("Error creating file: {}", error))?,
     }
 }
 

@@ -51,17 +51,16 @@ pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
     }
 }
 
-pub fn create_file(recall_path: &str, path_parts: &Vec<String>) -> std::io::Result<()> {
+pub fn create_file(recall_path: &str, path_parts: &[String]) -> std::io::Result<()> {
     // We want to include a stub file in each path we create.
     for (index, path_part) in path_parts.iter().enumerate() {
         // TODO: Maybe we don't want to keep recreating this from scratch. It may be better to
         // append the new depth to a mut string.
-        let merged_path_part = path_parts[0..index+1].join("/");
+        let merged_path_part = path_parts[0..=index].join("/");
 
         let full_path = format!("{}/{}", recall_path, merged_path_part);
         let filepath = format!("{}/{}.md", full_path, path_part);
 
-        println!("asdf{}", merged_path_part);
         if !Path::new(&filepath).exists() {
             fs::create_dir(full_path)?;
             fs::File::create(filepath)?;
@@ -99,10 +98,7 @@ fn non_valid_paths_return_none() {
 
 #[test]
 fn create_successfully_creates_files_for_each_level() {
-    let args: [String; 2] = [
-        String::from("swift"),
-        String::from("keypath"),
-    ];
+    let args: [String; 2] = [String::from("swift"), String::from("keypath")];
     let arg_vec = args.to_vec();
     let _create_file = create_file("./test/test_dir", &arg_vec);
 
