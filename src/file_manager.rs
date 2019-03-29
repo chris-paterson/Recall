@@ -51,8 +51,9 @@ pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
     }
 }
 
-pub fn create_missing_files(recall_path: &str, path_parts: &[String]) -> std::io::Result<()> {
+pub fn create_missing_files(recall_path: &str, path_parts: &[String]) -> std::io::Result<String> {
     // We want to include a stub file in each path we create.
+    let mut deepest_filepath = String::new();
     for (index, path_part) in path_parts.iter().enumerate() {
         let merged_path_part = path_parts[0..=index].join("/");
 
@@ -74,9 +75,11 @@ pub fn create_missing_files(recall_path: &str, path_parts: &[String]) -> std::io
             );
             file.write_all(file_heading.as_bytes())?;
         }
+
+        deepest_filepath = filepath.clone();
     }
 
-    Ok(())
+    Ok(deepest_filepath.to_string())
 }
 
 fn capitalize_first_letter(string: &str) -> String {

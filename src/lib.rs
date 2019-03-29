@@ -1,3 +1,4 @@
+use std::process::Command;
 use std::env;
 use std::error::Error;
 
@@ -47,7 +48,7 @@ impl Config {
 
         let rd = env::var("RECALL_DIR");
         if rd.is_err() {
-            return Err("Expected RECALL_DIRenv variable but found none");
+            return Err("Expected RECALL_DIR env variable but found none");
         };
 
         let recall_root_dir = rd.unwrap();
@@ -87,7 +88,7 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
     // The returned list has the deepest files at the start of the list.
     let filenames = match file_manager::recursively_get_filepaths(&sub_root_dir) {
         Some(filenames) => filenames,
-        None => return Err("No files found in given dir.")?,
+        None => return Err(format!("No such directory {}", &sub_root_dir))?,
     };
 
     // We want to view the root file start so we need to reverse the list.
@@ -106,9 +107,13 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
 
 fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
     match file_manager::create_missing_files(&config.recall_root_dir, &config.path_parts) {
-        Ok(_) => Ok(()),
+        Ok(deepest_file) => {
+            Command::new("vim").arg(deepest_file).status().expect("Unable to open file in vim.");
+        },
         Err(error) => Err(format!("Error creating file: {}", error))?,
-    }
+    };
+
+    Ok(())
 }
 
 #[test]
