@@ -1,6 +1,6 @@
-use std::process::Command;
 use std::env;
 use std::error::Error;
+use std::process::Command;
 
 mod file_manager;
 
@@ -65,7 +65,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let task_result = match config.task {
         Task::Read => execute_read(&config),
         Task::New => execute_create(&config),
-        Task::Edit => unimplemented!(),
+        Task::Edit => execute_edit(&config),
         Task::Delete => unimplemented!(),
         Task::Help => unimplemented!(),
     };
@@ -108,12 +108,20 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
 fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
     match file_manager::create_missing_files(&config.recall_root_dir, &config.path_parts) {
         Ok(deepest_file) => {
-            Command::new("vim").arg(deepest_file).status().expect("Unable to open file in vim.");
-        },
+            Command::new("vim")
+                .arg(deepest_file)
+                .status()
+                .expect("Unable to open file in vim.");
+        }
         Err(error) => Err(format!("Error creating file: {}", error))?,
     };
 
     Ok(())
+}
+
+// Is pretty much the exact same as create.
+fn execute_edit(config: &Config) -> Result<(), Box<dyn Error>> {
+    execute_create(&config)
 }
 
 #[test]
