@@ -1,52 +1,23 @@
+extern crate glob;
+
+use glob::glob;
 use std::fs;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-pub fn recursively_get_filepaths(dir: &str) -> Option<Vec<String>> {
-    let paths = match fs::read_dir(dir) {
-        Ok(path) => path,
-        Err(_) => return None,
+pub fn markdown_paths(dir: &str) -> Option<Vec<PathBuf>> {
+    let format = format!("{}/**/*.md", dir);
+    let paths: Vec<PathBuf> = glob(&format).unwrap().map(|r| r.unwrap()).collect();
+
+    return match paths.len() {
+        0 => None,
+        _ => Some(paths),
     };
-
-    let mut filenames = Vec::new();
-
-    for p in paths {
-        let path = p.unwrap().path();
-
-        // Don't include hidden files.
-        let filename = path.file_name().unwrap();
-        if filename.to_str().unwrap().starts_with('.') {
-            continue;
-        }
-
-        let is_dir = fs::metadata(&path).unwrap().is_dir();
-
-        if is_dir {
-            let nested_filenames = match recursively_get_filepaths(&path.display().to_string()) {
-                Some(filenames) => filenames,
-                None => continue, // Just skip over this one.
-            };
-
-            for filename in nested_filenames {
-                filenames.push(filename);
-            }
-        } else {
-            filenames.push(path.display().to_string());
-        }
-    }
-
-    Some(filenames)
 }
 
-pub fn get_contents_of_file(dir: &str) -> std::io::Result<String> {
-    let mut file = match fs::File::open(dir) {
-        Ok(f) => f,
-        Err(error) => return Err(error),
-    };
-
-    let mut contents = String::new();
-    match file.read_to_string(&mut contents) {
-        Ok(_) => Ok(contents),
+pub fn read_file(path: &Path) -> std::io::Result<String> {
+    match fs::read_to_string(path) {
+        Ok(contents) => Ok(contents),
         Err(error) => Err(error),
     }
 }
@@ -90,28 +61,28 @@ fn capitalize_first_letter(string: &str) -> String {
     }
 }
 
+#[ignore]
 #[test]
 fn lists_files_recursively() {
-    let dirs = recursively_get_filepaths("./test/test_dir").unwrap();
+    let dirs = markdown_paths("./test/test_dir").unwrap();
 
-    // Laziest way to test the vec contains the files we want.
-    let dir_string = dirs.join(", ");
-
-    assert!(dir_string.contains("surround.md"));
-    assert!(dir_string.contains("grep.md"));
-    assert!(dir_string.contains("layouts.md"));
-    assert!(dir_string.contains("tmux.md"));
+    assert!(dirs[0].ends_with("grep.md"));
+    assert!(dirs[1].ends_with("layouts.md"));
+    assert!(dirs[2].ends_with("tabs/tabs.md"));
+    assert!(dirs[3].ends_with("tmux.md"));
+    assert!(dirs[4].ends_with("surround.md"));
+    assert!(dirs[5].ends_with("vim.md"));
 }
 
 #[test]
 fn valid_path_returns_some() {
-    let dirs = recursively_get_filepaths("./test/test_dir");
+    let dirs = markdown_paths("./test/test_dir");
     assert!(dirs.is_some());
 }
 
 #[test]
 fn non_valid_paths_return_none() {
-    let dirs = recursively_get_filepaths("./thispathdoesnotexist");
+    let dirs = markdown_paths("./thispathdoesnotexist");
 
     assert!(dirs.is_none(), true);
 }
@@ -130,5 +101,5 @@ fn create_successfully_creates_files_for_each_level() {
         let _cleanup = fs::remove_dir_all("./test/test_dir/swift");
     }
 
-    assert!(!Path::new("./test/test_dir/swift").exists());
+    assert!(Path::new("./test/test_dir/swift").exists() == false);
 }
