@@ -91,16 +91,13 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
         None => return Err(format!("No such directory {}", &sub_root_dir))?,
     };
 
-    // We want to view the root file start so we need to reverse the list.
-    let mut file_contents = Vec::new();
     for p in paths {
         match file_manager::read_file(&p) {
-            Ok(contents) => file_contents.push(contents),
-            Err(error) => println!("ERROR: {}", error),
+            Ok(contents) => println!("{}", contents),
+            Err(error) => return Err(error.into()),
         }
     }
 
-    println!("{}", file_contents.join("\n\n"));
     Ok(())
 }
 
