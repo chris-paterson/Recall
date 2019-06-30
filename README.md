@@ -10,6 +10,9 @@ Recall is a command line app to help recall information.
 
 This outputs the binary which can be found in targets/release/recall
 
+## Installing
+`cargo install --path ./ --force`
+
 ## Running
 `RECALL_PATH=./test/test_dir cargo run [args]`
 
