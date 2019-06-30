@@ -222,7 +222,7 @@ pub fn execute_help() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn not_enough_program_args() {
-    let args: [String; 1] = [String::from("recall")];
+    let args: [String; 2] = [String::from("recall"), String::from("-n")];
 
     match Config::new(&args) {
         Ok(_) => assert!(false, "Config should require at least two arguments."),
@@ -295,6 +295,5 @@ fn generate_sub_root_dir_accepts_multiple() {
 
     let config = Config::new(&args).unwrap();
     let sub_root_dir = generate_sub_root_dir(&config);
-    println!("{}", sub_root_dir);
     assert!(sub_root_dir == "./test/test_dir/rust/release");
 }

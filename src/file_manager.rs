@@ -78,7 +78,6 @@ pub fn delete_dir(string: &str) -> std::io::Result<()> {
     }
 }
 
-#[ignore]
 #[test]
 fn lists_files_recursively() {
     let dirs = markdown_paths("./test/test_dir").unwrap();
@@ -106,17 +105,20 @@ fn non_valid_paths_return_none() {
 
 #[test]
 fn create_successfully_creates_files_for_each_level() {
+    let root_dir = "./test/create_test_dir";
     let args: [String; 2] = [String::from("swift"), String::from("keypath")];
     let arg_vec = args.to_vec();
-    let _create_missing_files = create_missing_files("./test/test_dir", &arg_vec);
+    let _create_missing_files = create_missing_files(root_dir, &arg_vec);
 
-    assert!(Path::new("./test/test_dir/swift/swift.md").exists());
-    assert!(Path::new("./test/test_dir/swift/keypath/keypath.md").exists());
+    let swift_md_path = format!("{}/swift/swift.md", root_dir);
+    assert!(Path::new(&swift_md_path).exists());
+
+    let keypath_md_path = format!("{}/swift/swift.md", root_dir);
+    assert!(Path::new(&keypath_md_path).exists());
 
     // Cleanup.
-    if Path::new("./test/test_dir/swift").exists() {
-        let _cleanup = fs::remove_dir_all("./test/test_dir/swift");
-    }
+    let cleanup_dir = format!("{}/swift", root_dir);
+    let _ = delete_dir(&cleanup_dir);
 
-    assert!(Path::new("./test/test_dir/swift").exists() == false);
+    assert!(Path::new(&format!("{}/swift", root_dir)).exists() == false);
 }
