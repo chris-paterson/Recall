@@ -1,5 +1,7 @@
 use std::env;
 use std::error::Error;
+use std::io;
+use std::path::PathBuf;
 use std::process::Command;
 
 mod file_manager;
@@ -66,7 +68,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         Task::Read => execute_read(&config),
         Task::New => execute_create(&config),
         Task::Edit => execute_edit(&config),
-        Task::Delete => unimplemented!(),
+        Task::Delete => execute_delete(&config),
         Task::Help => unimplemented!(),
     };
 
@@ -118,6 +120,52 @@ fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
 // Is pretty much the exact same as create.
 fn execute_edit(config: &Config) -> Result<(), Box<dyn Error>> {
     execute_create(&config)
+}
+
+fn execute_delete(config: &Config) -> Result<(), Box<dyn Error>> {
+    let sub_root_dir = generate_sub_root_dir(&config);
+
+    // Get list of files that will be deleted.
+    let all_files_to_delete = match file_manager::all_paths(&sub_root_dir) {
+        Some(paths) => paths,
+        None => return Err(format!("No such directory {}", &sub_root_dir))?,
+    };
+
+    // Ensure user is ok with that.
+    println!("You are about to delete: ");
+
+    let formatted_list = all_files_to_delete
+        .into_iter()
+        .map(PathBuf::into_os_string)
+        .map(|f| format!("- {}\n", f.into_string().unwrap()));
+
+    for name in formatted_list {
+        println!("{}", name);
+    }
+
+    println!("Are you sure? YES/NO");
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read user confirmation.");
+
+    let success = match input.trim_end() {
+        "YES" => file_manager::delete_dir(&sub_root_dir),
+        _ => {
+            return {
+                println!("Delete cancelled.");
+                Ok(())
+            };
+        }
+    };
+
+    match success {
+        Ok(_) => {
+            println!("Deleted {}", &sub_root_dir);
+            Ok(())
+        }
+        Err(error) => Err(format!("Error deleting dir: {}", error))?,
+    }
 }
 
 #[test]

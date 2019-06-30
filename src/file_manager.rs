@@ -15,6 +15,16 @@ pub fn markdown_paths(dir: &str) -> Option<Vec<PathBuf>> {
     };
 }
 
+pub fn all_paths(dir: &str) -> Option<Vec<PathBuf>> {
+    let format = format!("{}/**/*", dir);
+    let paths: Vec<PathBuf> = glob(&format).unwrap().map(|r| r.unwrap()).collect();
+
+    return match paths.len() {
+        0 => None,
+        _ => Some(paths),
+    };
+}
+
 pub fn read_file(path: &Path) -> std::io::Result<String> {
     match fs::read_to_string(path) {
         Ok(contents) => Ok(contents),
@@ -58,6 +68,13 @@ fn capitalize_first_letter(string: &str) -> String {
     match characters.next() {
         None => String::new(),
         Some(f) => f.to_uppercase().collect::<String>() + characters.as_str(),
+    }
+}
+
+pub fn delete_dir(string: &str) -> std::io::Result<()> {
+    match fs::remove_dir_all(string) {
+        Ok(_) => return Ok(()),
+        Err(error) => return Err(error),
     }
 }
 
