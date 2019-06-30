@@ -2,6 +2,9 @@
 
 Recall is a command line app to help recall information.
 
+## Testing
+`cargo test --package recall --lib generate_sub_root_dir_accepts_zero -- --exact`
+
 ## Building
 `cargo build --release`
 
@@ -65,3 +68,7 @@ Even if we backup automatically we may want to include this to manually sync in 
         - Maybe we just specify a directory (possibly an env variable)
         - The specified directory should have git enabled so we can just invoke commands
 
+
+## TODO
+
+- Print example usage for command attempted, not just the generic one

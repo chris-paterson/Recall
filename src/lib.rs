@@ -12,6 +12,7 @@ pub enum Task {
     Edit,
     Delete,
     Help,
+    List,
 }
 
 pub struct Config {
@@ -32,21 +33,28 @@ impl Config {
             "-e" => Task::Edit,
             "-d" => Task::Delete,
             "-h" => Task::Help,
+            "-l" => Task::List,
             _ => Task::Read,
         };
 
         // Ensure we have enough args for the task.
-        let min_args = match task {
-            Task::Help => 0,
-            Task::Read => 1, // TODO: Maybe read with 0 args lists everything?
+        // No need to count 'recall', but do count the flag
+        let min_args_for_task = match task {
+            Task::Read => 0,
+            Task::List => 0,
+            Task::Help => 1,
             _ => 2,
         };
 
-        if task_args.len() < min_args {
+        if task_args.len() < min_args_for_task {
             return Err("Not enough arguments.");
         }
 
-        let path_parts = args[min_args..].to_vec();
+        let start_index = match task {
+            Task::Read => 0,
+            _ => 1,
+        };
+        let path_parts = task_args[start_index..].to_vec();
 
         let rd = env::var("RECALL_DIR");
         if rd.is_err() {
@@ -69,6 +77,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         Task::New => execute_create(&config),
         Task::Edit => execute_edit(&config),
         Task::Delete => execute_delete(&config),
+        Task::List => execute_list(&config),
         Task::Help => execute_help(),
     };
 
@@ -168,6 +177,25 @@ fn execute_delete(config: &Config) -> Result<(), Box<dyn Error>> {
     }
 }
 
+fn execute_list(config: &Config) -> Result<(), Box<dyn Error>> {
+    let sub_root_dir = generate_sub_root_dir(&config);
+
+    let paths = match file_manager::markdown_paths(&sub_root_dir) {
+        Some(paths) => paths,
+        None => return Err(format!("No such directory {}", &sub_root_dir))?,
+    };
+
+    for p in paths
+        .into_iter()
+        .map(PathBuf::into_os_string)
+        .map(|f| f.into_string().unwrap())
+    {
+        println!("{}", p);
+    }
+
+    Ok(())
+}
+
 pub fn execute_help() -> Result<(), Box<dyn Error>> {
     let help_str = r#"
     USAGE:
@@ -181,6 +209,7 @@ pub fn execute_help() -> Result<(), Box<dyn Error>> {
         -n          Create new note at path
         -d          Deletes note and sub-notes at path
         -e          Edits note at path
+        -l          Lists files under specified path
 
     PATHS:
         Space-separated list of folders, e.g. rust release
@@ -241,4 +270,31 @@ fn path_only_uses_args() {
     let config = Config::new(&args).unwrap();
     let sub_root_dir = generate_sub_root_dir(&config);
     assert!(sub_root_dir == "./test/test_dir/tmux/layouts");
+}
+
+#[test]
+fn generate_sub_root_dir_accepts_zero() {
+    env::set_var("RECALL_DIR", "./test/test_dir");
+    let args: [String; 2] = [String::from("recall"), String::from("-l")];
+
+    let config = Config::new(&args).unwrap();
+    let sub_root_dir = generate_sub_root_dir(&config);
+    println!("{}", sub_root_dir);
+    assert!(sub_root_dir == "./test/test_dir/");
+}
+
+#[test]
+fn generate_sub_root_dir_accepts_multiple() {
+    env::set_var("RECALL_DIR", "./test/test_dir");
+    let args: [String; 4] = [
+        String::from("recall"),
+        String::from("-l"),
+        String::from("rust"),
+        String::from("release"),
+    ];
+
+    let config = Config::new(&args).unwrap();
+    let sub_root_dir = generate_sub_root_dir(&config);
+    println!("{}", sub_root_dir);
+    assert!(sub_root_dir == "./test/test_dir/rust/release");
 }
