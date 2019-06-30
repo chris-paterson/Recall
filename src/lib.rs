@@ -115,7 +115,7 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
 fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
     match file_manager::create_missing_files(&config.recall_root_dir, &config.path_parts) {
         Ok(deepest_file) => {
-            Command::new("vim")
+            Command::new("nvim") // Hardcoded to neovim for now.
                 .arg(deepest_file)
                 .status()
                 .expect("Unable to open file in vim.");
