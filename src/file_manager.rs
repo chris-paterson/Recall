@@ -6,13 +6,38 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
 pub fn markdown_paths(dir: &str) -> Option<Vec<PathBuf>> {
-    let format = format!("{}/**/*.md", dir);
-    let paths: Vec<PathBuf> = glob(&format).unwrap().map(|r| r.unwrap()).collect();
-
-    return match paths.len() {
-        0 => None,
-        _ => Some(paths),
+    let paths = match fs::read_dir(dir) {
+        Ok(paths) => paths,
+        Err(_) => return None,
     };
+
+    let mut files = Vec::new();
+    let mut dirs = Vec::new();
+
+    // We want to ensure files are added before we look at child directories.
+    for p in paths {
+        let path = p.unwrap().path();
+
+        let is_dir = fs::metadata(&path).unwrap().is_dir();
+        if is_dir {
+            dirs.push(path);
+        } else {
+            let filename = path.file_name().unwrap();
+            if filename.to_str().unwrap().ends_with(".md") {
+                files.push(path);
+            }
+        }
+    }
+
+    dirs.sort();
+    for dir in dirs {
+        match markdown_paths(dir.to_str().unwrap()) {
+            Some(nested_files) => files.extend(nested_files),
+            None => continue,
+        }
+    }
+
+    Some(files)
 }
 
 pub fn all_paths(dir: &str) -> Option<Vec<PathBuf>> {
