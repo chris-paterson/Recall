@@ -69,7 +69,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         Task::New => execute_create(&config),
         Task::Edit => execute_edit(&config),
         Task::Delete => execute_delete(&config),
-        Task::Help => unimplemented!(),
+        Task::Help => execute_help(),
     };
 
     if task_result.is_err() {
@@ -166,6 +166,29 @@ fn execute_delete(config: &Config) -> Result<(), Box<dyn Error>> {
         }
         Err(error) => Err(format!("Error deleting dir: {}", error))?,
     }
+}
+
+pub fn execute_help() -> Result<(), Box<dyn Error>> {
+    let help_str = r#"
+    USAGE:
+        recall [FLAGS] [PATHS]
+    EXAMPLE:
+        recall -n rust release install
+        recall rust
+                    
+    FLAGS:
+        -h          Prints help information
+        -n          Create new note at path
+        -d          Deletes note and sub-notes at path
+        -e          Edits note at path
+
+    PATHS:
+        Space-separated list of folders, e.g. rust release
+    "#;
+
+    print!("{}", help_str);
+
+    Ok(())
 }
 
 #[test]

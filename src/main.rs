@@ -2,13 +2,13 @@ use std::env;
 use std::process;
 
 use recall;
-use recall::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let config = Config::new(&args).unwrap_or_else(|err| {
+    let config = recall::Config::new(&args).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {}", err);
+        recall::execute_help().expect("Printing help should never fail...");
         process::exit(1);
     });
 

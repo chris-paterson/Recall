@@ -18,12 +18,11 @@ This outputs the binary which can be found in targets/release/recall
     - `recall vim surround`
     - `recall grep`
 
-## Future Usage
 
-### Creating (new)
+### New
 Syntax: `recall -n swift class`
 
-If `swift` or `class` not exit, the program should create the directories, files, and insert the headings of the files. 
+If `swift` or `class` not exist, the program should create the directories, files, and insert the headings of the files. 
 
 ### Editing
 Syntax: `recall -e swift class`
@@ -38,8 +37,8 @@ Syntax: `recall -d tmux layouts main`
 
 - This deletes all children of that directory too
 - Confirmation required
-    - Maybe output what else will be deleted
 
+## Future Usage
 
 ### Merge
 Syntax: `recall -m tmux layouts main -t tmux layouts`
@@ -58,8 +57,6 @@ Even if we backup automatically we may want to include this to manually sync in 
 
 
 ## Ideas
-- At the moment there isn't a plan to be able to add new notes so the following command will just open the file in vim.
-    - `recall -o`
 - A quick way to backup would be nice, aka to git. Maybe it auto trys to pull the most recent changes.
 - Use a git repo as storage. 
     - On launch try to pull most recent changes
@@ -67,21 +64,4 @@ Even if we backup automatically we may want to include this to manually sync in 
     - Need a way to specify repo.
         - Maybe we just specify a directory (possibly an env variable)
         - The specified directory should have git enabled so we can just invoke commands
-- Probably one large markdown file? or maybe a number of small files.
-    - If small files make it directory based?
-    - Seems like a pain to change in the future?
-    - Maybe easier than one large file though
 
-
-## Future
-- Web client - Phoenix
-    - This can be used for mobile too
-    - Eventually would want to be able to edit things too
-    - User notes by a git repo that they specify
-        - Don't really want to store any keys so we'll see what's available
-
-
-
-## Terminology
-- dir - Folder
-- Path - Filesystem object such as file
