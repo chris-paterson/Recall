@@ -185,12 +185,8 @@ fn execute_list(config: &Config) -> Result<(), Box<dyn Error>> {
         None => return Err(format!("No such directory {}", &sub_root_dir))?,
     };
 
-    for p in paths
-        .into_iter()
-        .map(PathBuf::into_os_string)
-        .map(|f| f.into_string().unwrap())
-    {
-        println!("{}", p);
+    for path in paths {
+        println!("{}", path.display());
     }
 
     Ok(())
