@@ -60,7 +60,7 @@ impl Config {
 
         let recall_root_dir = env::var("RECALL_DIR").unwrap();
 
-        let editor = env::var("RECALL_EDITOR").unwrap_or(String::from("vim"));
+        let editor = env::var("RECALL_EDITOR").unwrap_or_else(|_| String::from("vim"));
 
         Ok(Config {
             recall_root_dir,
