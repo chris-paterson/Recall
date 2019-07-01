@@ -2,6 +2,12 @@
 
 Recall is a command line app to help recall information.
 
+
+## Running
+- `RECALL_PATH=./test/test_dir cargo run [args]` - the root of where recall files are stored.
+- `RECALL_EDITOR=nvim` - editor to use. This should be executable via command line. Defaults to `vim`.
+
+
 ## Testing
 `cargo test --package recall --lib generate_sub_root_dir_accepts_zero -- --exact`
 
@@ -12,9 +18,6 @@ This outputs the binary which can be found in targets/release/recall
 
 ## Installing
 `cargo install --path ./ --force`
-
-## Running
-`RECALL_PATH=./test/test_dir cargo run [args]`
 
 
 ## Current Usage

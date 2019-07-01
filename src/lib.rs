@@ -17,6 +17,7 @@ pub enum Task {
 
 pub struct Config {
     pub recall_root_dir: String,
+    pub editor: String,
     pub path_parts: Vec<String>,
     pub task: Task,
 }
@@ -54,19 +55,18 @@ impl Config {
             Task::Read => 0,
             _ => 1,
         };
+
         let path_parts = task_args[start_index..].to_vec();
 
-        let rd = env::var("RECALL_DIR");
-        if rd.is_err() {
-            return Err("Expected RECALL_DIR env variable but found none");
-        };
+        let recall_root_dir = env::var("RECALL_DIR").unwrap();
 
-        let recall_root_dir = rd.unwrap();
+        let editor = env::var("RECALL_EDITOR").unwrap_or(String::from("vim"));
 
         Ok(Config {
             recall_root_dir,
             path_parts,
             task,
+            editor,
         })
     }
 }
@@ -115,7 +115,7 @@ fn execute_read(config: &Config) -> Result<(), Box<dyn Error>> {
 fn execute_create(config: &Config) -> Result<(), Box<dyn Error>> {
     match file_manager::create_missing_files(&config.recall_root_dir, &config.path_parts) {
         Ok(deepest_file) => {
-            Command::new("nvim") // Hardcoded to neovim for now.
+            Command::new(&config.editor)
                 .arg(deepest_file)
                 .status()
                 .expect("Unable to open file in vim.");
@@ -186,7 +186,8 @@ fn execute_list(config: &Config) -> Result<(), Box<dyn Error>> {
     };
 
     for path in paths {
-        println!("{}", path.display());
+        let filename = path.to_str().unwrap();
+        println!("{}", filename);
     }
 
     Ok(())
